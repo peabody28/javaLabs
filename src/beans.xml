@@ -1,1 +1,2 @@
 <bean id="mathOperation" class="MathOperation" />
+<bean id="cache" class="MathOperationInMemoryCache" />

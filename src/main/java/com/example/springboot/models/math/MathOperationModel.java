@@ -42,4 +42,15 @@ public class MathOperationModel {
     {
         operation = val;
     }
+
+    public int hashCode()
+    {
+        int hash = (int) (first*1000000 + second*1000000 + operation.ordinal());
+        return hash;
+    }
+
+    public boolean equals(Object other)
+    {
+        return this.hashCode() == other.hashCode();
+    }
 }
