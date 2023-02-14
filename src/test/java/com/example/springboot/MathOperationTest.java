@@ -1,5 +1,7 @@
 package com.example.springboot;
 
+import com.example.springboot.entities.MathOperationEntity;
+import com.example.springboot.entities.OperationEntity;
 import com.example.springboot.enums.Operation;
 import com.example.springboot.interfaces.IMathOperation;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,9 +25,11 @@ class MathOperationTest {
     @MethodSource("mathOperationCompute")
     void contextLoads(double a, double b, Operation op) {
         // Arrange
+        var operationEntity = new OperationEntity(op.toString());
+        var entity = new MathOperationEntity(a,b,operationEntity);
 
         // Act
-        var result = mathOperation.Compute(a,b,op);
+        var result = mathOperation.Compute(entity);
 
         // Assert
         if(a > 0 && b > 0 && op.equals(Operation.Addition))
