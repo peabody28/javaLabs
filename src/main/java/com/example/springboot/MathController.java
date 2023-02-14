@@ -2,6 +2,8 @@ package com.example.springboot;
 
 import com.example.springboot.cache.MathOperationInMemoryCache;
 import com.example.springboot.interfaces.IMathOperation;
+import com.example.springboot.models.math.StatisticsModel;
+import com.example.springboot.operations.CounterOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.springboot.constants.ValidationConstants;
@@ -17,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 @RestController
 @SpringBootApplication
 public class MathController {
@@ -24,12 +29,21 @@ public class MathController {
     IMathOperation mathOperation;
 
     @Autowired
+    CounterOperation counterOperation;
+
+    @Autowired
     MathOperationInMemoryCache<MathOperationModel, MathOperationResultModel> cache;
 
     Logger logger = LoggerFactory.getLogger(MathController.class);
 
+    Lock lock = new ReentrantLock();
+
     @GetMapping("/compute")
     public MathOperationResultModel hello(@ModelAttribute MathOperationModel model) throws HttpResponseException {
+
+        lock.lock();
+        counterOperation.Add();
+        lock.unlock();
 
         var cacheValue = cache.Get(model);
         if(cacheValue != null) return cacheValue;
@@ -48,6 +62,15 @@ public class MathController {
         catch(Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ValidationConstants.ServerErrorMessage);
         }
+    }
+
+    @GetMapping("/stat")
+    public StatisticsModel stat() {
+        var model = new StatisticsModel();
+
+        model.count = counterOperation.GetCount();
+
+        return model;
     }
 
     @ExceptionHandler({ ResponseStatusException.class })
