@@ -2,6 +2,7 @@ package com.example.springboot;
 
 import com.example.springboot.cache.MathOperationInMemoryCache;
 import com.example.springboot.interfaces.IMathOperation;
+import com.example.springboot.models.math.MathOperationCollectionModel;
 import com.example.springboot.models.math.StatisticsModel;
 import com.example.springboot.operations.CounterOperation;
 import org.slf4j.Logger;
@@ -19,8 +20,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collection;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 @RestController
 @SpringBootApplication
@@ -39,7 +42,7 @@ public class MathController {
     Lock lock = new ReentrantLock();
 
     @GetMapping("/compute")
-    public MathOperationResultModel hello(@ModelAttribute MathOperationModel model) throws HttpResponseException {
+    public MathOperationResultModel compute(@ModelAttribute MathOperationModel model){
 
         lock.lock();
         counterOperation.Add();
@@ -62,6 +65,12 @@ public class MathController {
         catch(Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ValidationConstants.ServerErrorMessage);
         }
+    }
+
+    @PostMapping(value="/compute/collection", consumes = "application/json", produces = "application/json")
+    public Collection<MathOperationResultModel> computeCollection(@RequestBody MathOperationCollectionModel model)
+    {
+        return model.collection.stream().parallel().map(this::compute).collect(Collectors.toList());
     }
 
     @GetMapping("/stat")
