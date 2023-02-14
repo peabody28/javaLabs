@@ -1,6 +1,5 @@
 package com.example.springboot.models.math;
 
-import com.example.springboot.operations.MathOperation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collection;

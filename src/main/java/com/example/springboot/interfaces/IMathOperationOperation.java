@@ -4,7 +4,7 @@ import com.example.springboot.entities.MathOperationEntity;
 
 import java.util.Collection;
 
-public interface IMathOperation {
+public interface IMathOperationOperation {
 
     double Compute(MathOperationEntity entity);
 

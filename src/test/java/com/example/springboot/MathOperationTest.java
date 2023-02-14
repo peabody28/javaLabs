@@ -3,7 +3,7 @@ package com.example.springboot;
 import com.example.springboot.entities.MathOperationEntity;
 import com.example.springboot.entities.OperationEntity;
 import com.example.springboot.enums.Operation;
-import com.example.springboot.interfaces.IMathOperation;
+import com.example.springboot.interfaces.IMathOperationOperation;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -19,14 +19,14 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 class MathOperationTest {
 
     @Autowired
-    IMathOperation mathOperation;
+    IMathOperationOperation mathOperation;
 
     @ParameterizedTest
     @MethodSource("mathOperationCompute")
     void contextLoads(double a, double b, Operation op) {
         // Arrange
-        var operationEntity = new OperationEntity(op.toString());
-        var entity = new MathOperationEntity(a,b,operationEntity);
+        var operationEntity = new OperationEntity(0, op.toString());
+        var entity = new MathOperationEntity(0, a,b,operationEntity);
 
         // Act
         var result = mathOperation.Compute(entity);
