@@ -17,10 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -101,6 +104,26 @@ public class MathController {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         return new MathOperationCollectionResultModel(resultsCollection, stats);
+    }
+
+    @PostMapping(value="/computeAsync", consumes = "application/json", produces = "application/json")
+    public MathOperationIdModel computeCollection(@RequestBody MathOperationModel model)
+    {
+        var operationEntity = operationRepository.Object(model.getOperation().name());
+        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
+
+        mathOperationOperation.ComputeAsync(entity);
+
+        return new MathOperationIdModel(entity.id);
+    }
+
+    @GetMapping("/result")
+    public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model) {
+
+        var mathOperation = mathOperationRepository.Object(model.getId());
+        var result = resultRepository.Object(mathOperation);
+
+        return new MathOperationResultModel(result.result);
     }
 
     @GetMapping("/stat")

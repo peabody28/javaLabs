@@ -2,6 +2,7 @@ package com.example.springboot.repositories;
 
 import com.example.springboot.entities.MathOperationEntity;
 import com.example.springboot.entities.OperationEntity;
+import com.example.springboot.entities.ResultEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,25 @@ public class MathOperationRepository{
             if(rs.next())
                 return new MathOperationEntity(rs.getInt(1), first, second, operationEntity);
             return null;
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
+    public MathOperationEntity Object(int id)
+    {
+        try
+        {
+            Statement statement = dbContext.conn.createStatement();
+
+            var sql = String.format("SELECT * FROM mathOperation WHERE id = '%d'", id);
+            ResultSet resultSet = statement.executeQuery(sql);
+            resultSet.next();
+
+            return new MathOperationEntity(resultSet.getInt("id"), resultSet.getDouble("first"),
+                    resultSet.getDouble("second"), null);
         }
         catch (Exception ex)
         {
