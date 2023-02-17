@@ -3,7 +3,7 @@ package com.example.springboot;
 import com.example.springboot.entities.MathOperationEntity;
 import com.example.springboot.entities.OperationEntity;
 import com.example.springboot.enums.Operation;
-import com.example.springboot.interfaces.IMathOperationOperation;
+import com.example.springboot.interfaces.operations.IMathOperationOperation;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

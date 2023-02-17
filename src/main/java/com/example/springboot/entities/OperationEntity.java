@@ -1,9 +1,21 @@
 package com.example.springboot.entities;
 
-public class OperationEntity {
+import com.example.springboot.interfaces.entities.IOperation;
 
+public class OperationEntity implements IOperation
+{
     public int id;
     public String name;
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
 
     public OperationEntity(int _id, String _name)
     {

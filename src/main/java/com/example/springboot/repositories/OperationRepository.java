@@ -1,6 +1,8 @@
 package com.example.springboot.repositories;
 
 import com.example.springboot.entities.OperationEntity;
+import com.example.springboot.interfaces.entities.IOperation;
+import com.example.springboot.interfaces.repositories.IOperationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -8,9 +10,9 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 @Component(value="operationRepository")
-public class OperationRepository {
-
-    DbContext dbContext;
+public class OperationRepository implements IOperationRepository
+{
+    private DbContext dbContext;
 
     @Autowired
     public OperationRepository(DbContext _dbContext)
@@ -18,7 +20,7 @@ public class OperationRepository {
         dbContext = _dbContext;
     }
 
-    public OperationEntity Object(String name)
+    public IOperation Object(String name)
     {
         try
         {

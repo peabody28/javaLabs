@@ -1,29 +1,32 @@
 package com.example.springboot.repositories;
 
 import com.example.springboot.entities.MathOperationEntity;
-import com.example.springboot.entities.OperationEntity;
 import com.example.springboot.entities.ResultEntity;
+import com.example.springboot.interfaces.entities.IMathOperation;
+import com.example.springboot.interfaces.entities.IResult;
+import com.example.springboot.interfaces.repositories.IResultRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.*;
 
 @Component(value="resultRepository")
-public class ResultRepository
+public class ResultRepository implements IResultRepository
 {
-    DbContext dbContext;
+    private DbContext dbContext;
 
     @Autowired
     public ResultRepository(DbContext _dbContext)
     {
         dbContext = _dbContext;
     }
-    public ResultEntity Create(MathOperationEntity mathOperation, double result)
+
+    public IResult Create(IMathOperation mathOperation, double result)
     {
         try {
             var sql = "INSERT INTO result (math_operation_id, value) VALUES(?, ?)";
             PreparedStatement st = dbContext.conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            st.setInt(1, mathOperation.id);
+            st.setInt(1, mathOperation.getId());
             st.setDouble(2, result);
             st.executeUpdate();
 
@@ -38,13 +41,13 @@ public class ResultRepository
         }
     }
 
-    public ResultEntity Object(MathOperationEntity mathOperation)
+    public ResultEntity Object(IMathOperation mathOperation)
     {
         try
         {
             Statement statement = dbContext.conn.createStatement();
 
-            var sql = String.format("SELECT * FROM result WHERE math_operation_id = '%d'", mathOperation.id);
+            var sql = String.format("SELECT * FROM result WHERE math_operation_id = '%d'", mathOperation.getId());
             ResultSet resultSet = statement.executeQuery(sql);
             resultSet.next();
 

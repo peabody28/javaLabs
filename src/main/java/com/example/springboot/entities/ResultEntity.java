@@ -1,16 +1,34 @@
 package com.example.springboot.entities;
 
-public class ResultEntity {
+import com.example.springboot.interfaces.entities.IMathOperation;
+import com.example.springboot.interfaces.entities.IResult;
+
+public class ResultEntity implements IResult
+{
     public int id;
-
-    public MathOperationEntity mathOperation;
-
+    public IMathOperation mathOperation;
     public double result;
 
-    public ResultEntity(int _id, MathOperationEntity _m, double _res)
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public IMathOperation getMathOperation() {
+        return mathOperation;
+    }
+
+    @Override
+    public double getResult() {
+        return result;
+    }
+
+    public ResultEntity(int _id, IMathOperation _m, double _res)
     {
         id = _id;
         mathOperation = _m;
         result = _res;
     }
+
 }

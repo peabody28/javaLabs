@@ -2,7 +2,9 @@ package com.example.springboot.operations;
 
 import com.example.springboot.MathController;
 import com.example.springboot.entities.MathOperationEntity;
-import com.example.springboot.interfaces.IMathOperationOperation;
+import com.example.springboot.interfaces.entities.IMathOperation;
+import com.example.springboot.interfaces.operations.IMathOperationOperation;
+import com.example.springboot.interfaces.operations.IOperationOperation;
 import com.example.springboot.repositories.ResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,37 +14,43 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Component(value="mathOperationOperation")
-public class MathOperationOperation implements IMathOperationOperation {
+public class MathOperationOperation implements IMathOperationOperation
+{
+    @Autowired
+    public ResultRepository resultRepository;
 
     @Autowired
-    ResultRepository resultRepository;
+    public IOperationOperation operationOperation;
 
     Logger logger = LoggerFactory.getLogger(MathController.class);
 
-    public double Compute(MathOperationEntity entity)
+    public double Compute(IMathOperation entity)
     {
-        var result = entity.first;
-        // TODO: remove hardcode
-        switch (entity.operation.name) {
-            case "Addition" -> result += entity.second;
-            case "Subtraction" -> result -= entity.second;
-            case "Multiplication" -> result *= entity.second;
-            case "Division" -> result /= entity.second;
-        };
+        var first = entity.getFirst();
+        var second = entity.getSecond();
+        var operation = entity.getOperation();
 
-        return result;
+        if(operation.getName().equals(operationOperation.Addition().getName()))
+            return first + second;
+        else if(operation.getName().equals(operationOperation.Subtraction().getName()))
+            return first - second;
+        else if(operation.getName().equals(operationOperation.Multiplication().getName()))
+            return first * second;
+        else if(operation.getName().equals(operationOperation.Division().getName()))
+            return first / second;
+
+        throw new RuntimeException();
     }
 
-    public Collection<Double> Compute(Collection<MathOperationEntity> entities)
+    public Collection<Double> Compute(Collection<IMathOperation> entities)
     {
         return entities.stream().map(this::Compute).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public CompletableFuture<Double> ComputeAsync(MathOperationEntity entity)
+    public CompletableFuture<Double> ComputeAsync(IMathOperation entity)
     {
         return CompletableFuture.supplyAsync(() -> {
             try {

@@ -5,3 +5,4 @@
 <bean id="mathOperationRepository" class="MathOperationRepository" />
 <bean id="resultRepository" class="ResultRepository" />
 <bean id="dbContext" class="DbContext" />
+<bean id="operationOperation" class="OperationOperation"/>

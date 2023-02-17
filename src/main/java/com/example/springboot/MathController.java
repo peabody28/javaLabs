@@ -1,13 +1,13 @@
 package com.example.springboot;
 
 import com.example.springboot.cache.MathOperationInMemoryCache;
-import com.example.springboot.interfaces.IMathOperationOperation;
+import com.example.springboot.interfaces.operations.IMathOperationOperation;
+import com.example.springboot.interfaces.repositories.IMathOperationRepository;
+import com.example.springboot.interfaces.repositories.IOperationRepository;
+import com.example.springboot.interfaces.repositories.IResultRepository;
 import com.example.springboot.models.math.*;
 import com.example.springboot.operations.CounterOperation;
 import com.example.springboot.operations.MathOperationResultAggregatorOperation;
-import com.example.springboot.repositories.MathOperationRepository;
-import com.example.springboot.repositories.OperationRepository;
-import com.example.springboot.repositories.ResultRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.example.springboot.constants.ValidationConstants;
@@ -17,13 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -31,30 +28,38 @@ import java.util.stream.Collectors;
 @RestController
 @SpringBootApplication
 public class MathController {
-    @Autowired
-    IMathOperationOperation mathOperationOperation;
 
+    //region Operations
     @Autowired
-    CounterOperation counterOperation;
-
-    @Autowired
-    OperationRepository operationRepository;
+    public IMathOperationOperation mathOperationOperation;
 
     @Autowired
-    MathOperationRepository mathOperationRepository;
+    public CounterOperation counterOperation;
+
+    //endregion
+
+    //region Repositories
+    @Autowired
+    public IOperationRepository operationRepository;
 
     @Autowired
-    ResultRepository resultRepository;
+    public IMathOperationRepository mathOperationRepository;
 
     @Autowired
-    MathOperationInMemoryCache<MathOperationModel, MathOperationResultModel> cache;
+    public IResultRepository resultRepository;
 
-    Logger logger = LoggerFactory.getLogger(MathController.class);
+    //endregion
 
-    Lock lock = new ReentrantLock();
+    @Autowired
+    public MathOperationInMemoryCache<MathOperationModel, MathOperationResultModel> cache;
+
+    private final Logger logger = LoggerFactory.getLogger(MathController.class);
+
+    private final Lock lock = new ReentrantLock();
 
     @GetMapping("/compute")
-    public MathOperationResultModel compute(@ModelAttribute MathOperationModel model){
+    public MathOperationResultModel compute(@ModelAttribute MathOperationModel model)
+    {
         lock.lock();
         counterOperation.Add();
         lock.unlock();
@@ -72,11 +77,12 @@ public class MathController {
 
             double result = mathOperationOperation.Compute(entity);
             resultRepository.Create(entity, result);
+
             logger.info(String.format("%f %s %f", model.getFirst(), model.getOperation(), model.getSecond()));
 
             var response = new MathOperationResultModel(result);
             cache.Push(model, response);
-            return new MathOperationResultModel(result);
+            return response;
         }
         catch(Exception ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ValidationConstants.ServerErrorMessage);
@@ -90,12 +96,15 @@ public class MathController {
         {
             var operationEntity = operationRepository.Object(mOperation.getOperation().name());
             return mathOperationRepository.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
+
         }).collect(Collectors.toCollection(ArrayList::new));
 
-        var results = entities.stream().map(entity -> {
+        var results = entities.stream().map(entity ->
+        {
            var result = mathOperationOperation.Compute(entity);
            resultRepository.Create(entity, result);
            return result;
+
         }).collect(Collectors.toCollection(ArrayList::new));
 
         var stats = MathOperationResultAggregatorOperation.Aggreagate(entities, results);
@@ -107,27 +116,29 @@ public class MathController {
     }
 
     @PostMapping(value="/computeAsync", consumes = "application/json", produces = "application/json")
-    public MathOperationIdModel computeCollection(@RequestBody MathOperationModel model)
+    public MathOperationIdModel computeAsync(@RequestBody MathOperationModel model)
     {
         var operationEntity = operationRepository.Object(model.getOperation().name());
         var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
 
         mathOperationOperation.ComputeAsync(entity);
 
-        return new MathOperationIdModel(entity.id);
+        return new MathOperationIdModel(entity.getId());
     }
 
     @GetMapping("/result")
-    public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model) {
-
+    public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model)
+    {
         var mathOperation = mathOperationRepository.Object(model.getId());
+
         var result = resultRepository.Object(mathOperation);
 
-        return new MathOperationResultModel(result.result);
+        return new MathOperationResultModel(result.getResult());
     }
 
     @GetMapping("/stat")
-    public StatisticsModel stat() {
+    public StatisticsModel stat()
+    {
         var model = new StatisticsModel();
 
         model.count = counterOperation.GetCount();
@@ -136,8 +147,8 @@ public class MathController {
     }
 
     @ExceptionHandler({ ResponseStatusException.class })
-    public ResponseEntity<Object> handleException(ResponseStatusException ex) {
-
+    public ResponseEntity<Object> handleException(ResponseStatusException ex)
+    {
         var errorModel = new ErrorModel();
         errorModel.Message = ex.getReason();
 
