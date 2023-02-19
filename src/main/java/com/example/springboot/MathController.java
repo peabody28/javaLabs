@@ -2,23 +2,20 @@ package com.example.springboot;
 
 import com.example.springboot.cache.MathOperationInMemoryCache;
 import com.example.springboot.interfaces.operations.IMathOperationOperation;
-import com.example.springboot.interfaces.repositories.IMathOperationRepository;
-import com.example.springboot.interfaces.repositories.IOperationRepository;
-import com.example.springboot.interfaces.repositories.IResultRepository;
+import com.example.springboot.interfaces.repositories.MathOperationRepository;
+import com.example.springboot.interfaces.repositories.OperationRepository;
+import com.example.springboot.interfaces.repositories.ResultRepository;
 import com.example.springboot.models.math.*;
 import com.example.springboot.operations.CounterOperation;
 import com.example.springboot.operations.MathOperationResultAggregatorOperation;
+import com.example.springboot.repositories.MathOperationRepositoryImpl;
+import com.example.springboot.repositories.OperationRepositoryImpl;
+import com.example.springboot.repositories.ResultRepositoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.example.springboot.constants.ValidationConstants;
-import com.example.springboot.enums.Operation;
-import com.example.springboot.models.ErrorModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
@@ -26,7 +23,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @RestController
-@SpringBootApplication
 public class MathController {
 
     //region Operations
@@ -39,14 +35,17 @@ public class MathController {
     //endregion
 
     //region Repositories
-    @Autowired
-    public IOperationRepository operationRepository;
 
     @Autowired
-    public IMathOperationRepository mathOperationRepository;
+
+    private OperationRepositoryImpl operationRepositoryImpl;
 
     @Autowired
-    public IResultRepository resultRepository;
+    public MathOperationRepositoryImpl mathOperationRepositoryImpl;
+
+    @Autowired
+
+    public ResultRepositoryImpl resultRepositoryImpl;
 
     //endregion
 
@@ -60,33 +59,23 @@ public class MathController {
     @GetMapping("/compute")
     public MathOperationResultModel compute(@ModelAttribute MathOperationModel model)
     {
-        lock.lock();
+        //lock.lock();
         counterOperation.Add();
-        lock.unlock();
-
+        //lock.unlock();
         var cacheValue = cache.Get(model);
         if(cacheValue != null) return cacheValue;
 
-        if(model.getOperation().equals(Operation.Division) && model.getSecond() == 0)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ValidationConstants.ArgumentInvalidMessage);
+        var operationEntity = operationRepositoryImpl.Get(model.getOperation().toString());
+        var entity = mathOperationRepositoryImpl.Create(model.getFirst(), model.getSecond(), operationEntity);
 
-        var operationEntity = operationRepository.Object(model.getOperation().toString());
-        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
+        double result = mathOperationOperation.Compute(entity);
+        resultRepositoryImpl.Create(entity, result);
 
-        try {
+        logger.info(String.format("%f %s %f", model.getFirst(), model.getOperation(), model.getSecond()));
 
-            double result = mathOperationOperation.Compute(entity);
-            resultRepository.Create(entity, result);
-
-            logger.info(String.format("%f %s %f", model.getFirst(), model.getOperation(), model.getSecond()));
-
-            var response = new MathOperationResultModel(result);
-            cache.Push(model, response);
-            return response;
-        }
-        catch(Exception ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, ValidationConstants.ServerErrorMessage);
-        }
+        var response = new MathOperationResultModel(result);
+        cache.Push(model, response);
+        return response;
     }
 
     @PostMapping(value="/compute", consumes = "application/json", produces = "application/json")
@@ -94,15 +83,15 @@ public class MathController {
     {
         var entities = model.collection.stream().parallel().map(mOperation ->
         {
-            var operationEntity = operationRepository.Object(mOperation.getOperation().name());
-            return mathOperationRepository.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
+            var operationEntity = operationRepositoryImpl.Get(mOperation.getOperation().name());
+            return mathOperationRepositoryImpl.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
 
         }).collect(Collectors.toCollection(ArrayList::new));
 
         var results = entities.stream().map(entity ->
         {
            var result = mathOperationOperation.Compute(entity);
-           resultRepository.Create(entity, result);
+           resultRepositoryImpl.Create(entity, result);
            return result;
 
         }).collect(Collectors.toCollection(ArrayList::new));
@@ -118,8 +107,8 @@ public class MathController {
     @PostMapping(value="/computeAsync", consumes = "application/json", produces = "application/json")
     public MathOperationIdModel computeAsync(@RequestBody MathOperationModel model)
     {
-        var operationEntity = operationRepository.Object(model.getOperation().name());
-        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
+        var operationEntity = operationRepositoryImpl.Get(model.getOperation().name());
+        var entity = mathOperationRepositoryImpl.Create(model.getFirst(), model.getSecond(), operationEntity);
 
         mathOperationOperation.ComputeAsync(entity);
 
@@ -129,31 +118,19 @@ public class MathController {
     @GetMapping("/result")
     public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model)
     {
-        var mathOperation = mathOperationRepository.Object(model.getId());
+        var mathOperation = mathOperationRepositoryImpl.Get(model.getId());
 
-        var result = resultRepository.Object(mathOperation);
+        var result = resultRepositoryImpl.Get(mathOperation);
 
         return new MathOperationResultModel(result.getResult());
     }
 
     @GetMapping("/stat")
-    public StatisticsModel stat()
-    {
+    public StatisticsModel stat() {
         var model = new StatisticsModel();
 
         model.count = counterOperation.GetCount();
 
         return model;
-    }
-
-    @ExceptionHandler({ ResponseStatusException.class })
-    public ResponseEntity<Object> handleException(ResponseStatusException ex)
-    {
-        var errorModel = new ErrorModel();
-        errorModel.Message = ex.getReason();
-
-        logger.info("Exception: " + ex.getMessage());
-
-        return new ResponseEntity<>(errorModel, ex.getStatusCode());
     }
 }

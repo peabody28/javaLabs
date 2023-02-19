@@ -1,8 +1,4 @@
 <bean id="mathOperationOperation" class="MathOperationOperation" />
 <bean id="cache" class="MathOperationInMemoryCache" />
 <bean id="counter" class="CounterOperation" />
-<bean id="operationRepository" class="OperationRepository" />
-<bean id="mathOperationRepository" class="MathOperationRepository" />
-<bean id="resultRepository" class="ResultRepository" />
-<bean id="dbContext" class="DbContext" />
 <bean id="operationOperation" class="OperationOperation"/>

@@ -2,11 +2,11 @@ package com.example.springboot.interfaces.entities;
 
 public interface IMathOperation
 {
-    int getId();
+    Integer getId();
 
-    double getFirst();
+    Double getFirst();
 
-    double getSecond();
+    Double getSecond();
 
     IOperation getOperation();
 }

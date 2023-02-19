@@ -2,7 +2,7 @@ package com.example.springboot.interfaces.entities;
 
 public interface IResult
 {
-    int getId();
+    Integer getId();
     IMathOperation getMathOperation();
-    double getResult();
+    Double getResult();
 }

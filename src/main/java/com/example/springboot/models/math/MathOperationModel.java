@@ -6,15 +6,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class MathOperationModel {
 
     @JsonProperty("first")
-    double first;
+    private double first;
 
     @JsonProperty("second")
 
-    double second;
+    private double second;
 
     @JsonProperty("operation")
 
-    Operation operation;
+    private Operation operation;
 
 
     public double getFirst() {

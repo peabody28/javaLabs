@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -37,12 +38,17 @@ class MathOperationTest {
 
         if(a < b && op.equals(Operation.Subtraction))
             assertTrue(result < 0);
+
+        if(b == 0. && op.equals(Operation.Division))
+            assertThrows(RuntimeException.class, () -> mathOperation.Compute(entity));
     }
+
 
     private static Stream<Arguments> mathOperationCompute() {
         return Stream.of(
                 arguments(1.,2., Operation.Addition),
-                arguments(1.,2., Operation.Subtraction)
+                arguments(1.,2., Operation.Subtraction),
+                arguments(1.,0., Operation.Division)
         );
     }
 }

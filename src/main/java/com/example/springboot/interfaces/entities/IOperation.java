@@ -2,7 +2,7 @@ package com.example.springboot.interfaces.entities;
 
 public interface IOperation
 {
-    int getId();
+    Integer getId();
 
     String getName();
 }
