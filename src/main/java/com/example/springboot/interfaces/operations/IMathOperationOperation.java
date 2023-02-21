@@ -8,9 +8,9 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IMathOperationOperation {
 
-    double Compute(MathOperationEntity entity);
+    Double Compute(IMathOperation entity);
 
-    Collection<Double> Compute(Collection<MathOperationEntity> entities);
+    Collection<Double> Compute(Collection<IMathOperation> entities);
 
-    CompletableFuture<Double> ComputeAsync(MathOperationEntity entity);
+    CompletableFuture<Double> ComputeAsync(IMathOperation entity);
 }

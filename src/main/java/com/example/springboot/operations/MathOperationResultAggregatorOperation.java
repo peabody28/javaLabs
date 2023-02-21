@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class MathOperationResultAggregatorOperation {
     public static Collection<MathOperationMemberStatistic> Aggreagate(
-            Collection<MathOperationEntity> entities, Collection<Double> results)
+            Collection<IMathOperation> entities, Collection<Double> results)
     {
         var stats = new ArrayList<MathOperationMemberStatistic>();
 

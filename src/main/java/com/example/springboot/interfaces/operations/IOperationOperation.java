@@ -5,8 +5,8 @@ import com.example.springboot.interfaces.entities.IOperation;
 
 public interface IOperationOperation
 {
-    OperationEntity Addition();
-    OperationEntity Subtraction();
-    OperationEntity Multiplication();
-    OperationEntity Division();
+    IOperation Addition();
+    IOperation Subtraction();
+    IOperation Multiplication();
+    IOperation Division();
 }

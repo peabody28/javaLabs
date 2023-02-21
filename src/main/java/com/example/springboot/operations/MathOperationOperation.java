@@ -2,9 +2,11 @@ package com.example.springboot.operations;
 
 import com.example.springboot.MathController;
 import com.example.springboot.entities.MathOperationEntity;
+import com.example.springboot.interfaces.entities.IMathOperation;
 import com.example.springboot.interfaces.operations.IMathOperationOperation;
 import com.example.springboot.interfaces.operations.IOperationOperation;
-import com.example.springboot.interfaces.repositories.ResultRepository;
+import com.example.springboot.interfaces.repositories.IResultRepository;
+import com.example.springboot.interfaces.repositories.impls.IResultRepositoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +23,14 @@ import java.util.stream.Collectors;
 public class MathOperationOperation implements IMathOperationOperation
 {
     @Autowired
-    private ResultRepository resultRepository;
+    private IResultRepositoryImpl resultRepositoryImpl;
 
     @Autowired
     public IOperationOperation operationOperation;
 
     Logger logger = LoggerFactory.getLogger(MathController.class);
 
-    public double Compute(MathOperationEntity entity)
+    public Double Compute(IMathOperation entity)
     {
         var first = entity.getFirst();
         var second = entity.getSecond();
@@ -49,17 +51,17 @@ public class MathOperationOperation implements IMathOperationOperation
         throw new RuntimeException();
     }
 
-    public Collection<Double> Compute(Collection<MathOperationEntity> entities)
+    public Collection<Double> Compute(Collection<IMathOperation> entities)
     {
         return entities.stream().map(this::Compute).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public CompletableFuture<Double> ComputeAsync(MathOperationEntity entity)
+    public CompletableFuture<Double> ComputeAsync(IMathOperation entity)
     {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 var result = Compute(entity);
-                resultRepository.Create(entity, result);
+                resultRepositoryImpl.create(entity, result);
                 Thread.sleep(2000);
                 logger.info("task completed");
                 return result;

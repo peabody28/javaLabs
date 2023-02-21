@@ -2,3 +2,6 @@
 <bean id="cache" class="MathOperationInMemoryCache" />
 <bean id="counter" class="CounterOperation" />
 <bean id="operationOperation" class="OperationOperation"/>
+<bean id="operationRepositoryImpl" class="IOperationRepositoryImpl"/>
+<bean id="mathOperationRepositoryImpl" class="IMathOperationRepositoryImpl"/>
+<bean id="resultRepositoryImpl" class="IResultRepositoryImpl"/>

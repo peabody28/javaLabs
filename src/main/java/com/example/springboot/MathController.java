@@ -2,14 +2,15 @@ package com.example.springboot;
 
 import com.example.springboot.cache.MathOperationInMemoryCache;
 import com.example.springboot.interfaces.operations.IMathOperationOperation;
-import com.example.springboot.interfaces.repositories.MathOperationRepository;
-import com.example.springboot.interfaces.repositories.OperationRepository;
-import com.example.springboot.interfaces.repositories.ResultRepository;
+import com.example.springboot.interfaces.repositories.IMathOperationRepository;
+import com.example.springboot.interfaces.repositories.IOperationRepository;
+import com.example.springboot.interfaces.repositories.IResultRepository;
+import com.example.springboot.interfaces.repositories.impls.IMathOperationRepositoryImpl;
+import com.example.springboot.interfaces.repositories.impls.IOperationRepositoryImpl;
+import com.example.springboot.interfaces.repositories.impls.IResultRepositoryImpl;
 import com.example.springboot.models.math.*;
 import com.example.springboot.operations.CounterOperation;
 import com.example.springboot.operations.MathOperationResultAggregatorOperation;
-import com.example.springboot.repositories.MathOperationRepositoryImpl;
-import com.example.springboot.repositories.ResultRepositoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,14 +37,14 @@ public class MathController {
 
     @Autowired
 
-    private OperationRepository operationRepository;
+    private IOperationRepositoryImpl operationRepositoryImpl;
 
     @Autowired
-    public MathOperationRepository mathOperationRepository;
+    public IMathOperationRepositoryImpl mathOperationRepositoryImpl;
 
     @Autowired
 
-    public ResultRepository resultRepository;
+    public IResultRepositoryImpl resultRepositoryImpl;
 
     //endregion
 
@@ -63,11 +64,11 @@ public class MathController {
         var cacheValue = cache.Get(model);
         if(cacheValue != null) return cacheValue;
 
-        var operationEntity = operationRepository.getByName(model.getOperation().toString());
-        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
+        var operationEntity = operationRepositoryImpl.get(model.getOperation().toString());
+        var entity = mathOperationRepositoryImpl.create(model.getFirst(), model.getSecond(), operationEntity);
 
         double result = mathOperationOperation.Compute(entity);
-        resultRepository.Create(entity, result);
+        resultRepositoryImpl.create(entity, result);
 
         logger.info(String.format("%f %s %f", model.getFirst(), model.getOperation(), model.getSecond()));
 
@@ -81,15 +82,15 @@ public class MathController {
     {
         var entities = model.collection.stream().parallel().map(mOperation ->
         {
-            var operationEntity = operationRepository.getByName(mOperation.getOperation().name());
-            return mathOperationRepository.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
+            var operationEntity = operationRepositoryImpl.get(mOperation.getOperation().name());
+            return mathOperationRepositoryImpl.create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
 
         }).collect(Collectors.toCollection(ArrayList::new));
 
         var results = entities.stream().map(entity ->
         {
            var result = mathOperationOperation.Compute(entity);
-           resultRepository.Create(entity, result);
+           resultRepositoryImpl.create(entity, result);
            return result;
 
         }).collect(Collectors.toCollection(ArrayList::new));
@@ -105,8 +106,8 @@ public class MathController {
     @PostMapping(value="/computeAsync", consumes = "application/json", produces = "application/json")
     public MathOperationIdModel computeAsync(@RequestBody MathOperationModel model)
     {
-        var operationEntity = operationRepository.getByName(model.getOperation().name());
-        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
+        var operationEntity = operationRepositoryImpl.get(model.getOperation().name());
+        var entity = mathOperationRepositoryImpl.create(model.getFirst(), model.getSecond(), operationEntity);
 
         mathOperationOperation.ComputeAsync(entity);
 
@@ -116,9 +117,9 @@ public class MathController {
     @GetMapping("/result")
     public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model)
     {
-        var mathOperation = mathOperationRepository.findById(model.getId()).get();
+        var mathOperation = mathOperationRepositoryImpl.get(model.getId());
 
-        var result = resultRepository.getByMathOperation(mathOperation);
+        var result = resultRepositoryImpl.get(mathOperation);
 
         return new MathOperationResultModel(result.getResult());
     }

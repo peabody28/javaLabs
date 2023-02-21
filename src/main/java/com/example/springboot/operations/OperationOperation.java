@@ -2,8 +2,10 @@ package com.example.springboot.operations;
 
 import com.example.springboot.entities.OperationEntity;
 import com.example.springboot.enums.Operation;
+import com.example.springboot.interfaces.entities.IOperation;
 import com.example.springboot.interfaces.operations.IOperationOperation;
-import com.example.springboot.interfaces.repositories.OperationRepository;
+import com.example.springboot.interfaces.repositories.IOperationRepository;
+import com.example.springboot.interfaces.repositories.impls.IOperationRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +13,10 @@ import org.springframework.stereotype.Component;
 public class OperationOperation implements IOperationOperation
 {
     @Autowired
-    public OperationRepository operationRepository;
+    public IOperationRepositoryImpl operationRepositoryImpl;
 
-    public OperationEntity Addition() { return operationRepository.getByName(Operation.Addition.name()); }
-    public OperationEntity Subtraction() { return operationRepository.getByName(Operation.Subtraction.name()); };
-    public OperationEntity Multiplication() {return operationRepository.getByName(Operation.Multiplication.name()); };
-    public OperationEntity Division() { return operationRepository.getByName(Operation.Division.name()); }
+    public IOperation Addition() { return operationRepositoryImpl.get(Operation.Addition.name()); }
+    public IOperation Subtraction() { return operationRepositoryImpl.get(Operation.Subtraction.name()); };
+    public IOperation Multiplication() {return operationRepositoryImpl.get(Operation.Multiplication.name()); };
+    public IOperation Division() { return operationRepositoryImpl.get(Operation.Division.name()); }
 }
