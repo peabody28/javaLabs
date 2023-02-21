@@ -20,7 +20,7 @@ public class ResultRepositoryImpl implements IResultRepositoryImpl {
     private IResultRepository resultRepository;
 
     @Override
-    public ResultEntity create(IMathOperation mathOperation, Double res) {
+    public IResult create(IMathOperation mathOperation, Double res) {
         var entity = new ResultEntity((MathOperationEntity) mathOperation, res);
         var object = resultRepository.save(entity);
         return object;
