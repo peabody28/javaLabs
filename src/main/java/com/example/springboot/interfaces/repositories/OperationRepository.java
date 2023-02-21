@@ -5,7 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface OperationRepository extends CrudRepository<OperationEntity, Integer>, OperationRepositoryCustom
+public interface OperationRepository extends CrudRepository<OperationEntity, Integer>
 {
-
+    OperationEntity getByName(String name);
 }

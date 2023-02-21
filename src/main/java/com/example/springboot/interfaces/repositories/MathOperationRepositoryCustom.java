@@ -7,6 +7,4 @@ import org.springframework.stereotype.Service;
 @Service
 public interface MathOperationRepositoryCustom {
     MathOperationEntity Create(Double first, Double second, OperationEntity op);
-
-    MathOperationEntity Get(Integer id);
 }

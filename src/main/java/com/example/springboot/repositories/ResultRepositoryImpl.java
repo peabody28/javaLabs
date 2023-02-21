@@ -23,13 +23,4 @@ public class ResultRepositoryImpl implements ResultRepositoryCustom {
         var object = resultRepository.save(entity);
         return object;
     }
-
-    @Override
-    public ResultEntity Get(MathOperationEntity mathOperation) {
-        var collection = resultRepository.findAll();
-        for(var item : collection)
-            if(Objects.equals(item.getMathOperation().getId(), mathOperation.getId()))
-                return item;
-        return null;
-    }
 }

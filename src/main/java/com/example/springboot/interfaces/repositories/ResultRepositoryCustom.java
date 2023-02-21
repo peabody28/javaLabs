@@ -7,6 +7,4 @@ import org.springframework.stereotype.Service;
 @Service
 public interface ResultRepositoryCustom {
     ResultEntity Create(MathOperationEntity mathOperation, Double res);
-
-    ResultEntity Get(MathOperationEntity mathOperation);
 }

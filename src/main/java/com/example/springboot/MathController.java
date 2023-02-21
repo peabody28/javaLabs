@@ -9,12 +9,10 @@ import com.example.springboot.models.math.*;
 import com.example.springboot.operations.CounterOperation;
 import com.example.springboot.operations.MathOperationResultAggregatorOperation;
 import com.example.springboot.repositories.MathOperationRepositoryImpl;
-import com.example.springboot.repositories.OperationRepositoryImpl;
 import com.example.springboot.repositories.ResultRepositoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -38,14 +36,14 @@ public class MathController {
 
     @Autowired
 
-    private OperationRepositoryImpl operationRepositoryImpl;
+    private OperationRepository operationRepository;
 
     @Autowired
-    public MathOperationRepositoryImpl mathOperationRepositoryImpl;
+    public MathOperationRepository mathOperationRepository;
 
     @Autowired
 
-    public ResultRepositoryImpl resultRepositoryImpl;
+    public ResultRepository resultRepository;
 
     //endregion
 
@@ -65,11 +63,11 @@ public class MathController {
         var cacheValue = cache.Get(model);
         if(cacheValue != null) return cacheValue;
 
-        var operationEntity = operationRepositoryImpl.Get(model.getOperation().toString());
-        var entity = mathOperationRepositoryImpl.Create(model.getFirst(), model.getSecond(), operationEntity);
+        var operationEntity = operationRepository.getByName(model.getOperation().toString());
+        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
 
         double result = mathOperationOperation.Compute(entity);
-        resultRepositoryImpl.Create(entity, result);
+        resultRepository.Create(entity, result);
 
         logger.info(String.format("%f %s %f", model.getFirst(), model.getOperation(), model.getSecond()));
 
@@ -83,15 +81,15 @@ public class MathController {
     {
         var entities = model.collection.stream().parallel().map(mOperation ->
         {
-            var operationEntity = operationRepositoryImpl.Get(mOperation.getOperation().name());
-            return mathOperationRepositoryImpl.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
+            var operationEntity = operationRepository.getByName(mOperation.getOperation().name());
+            return mathOperationRepository.Create(mOperation.getFirst(), mOperation.getSecond(), operationEntity);
 
         }).collect(Collectors.toCollection(ArrayList::new));
 
         var results = entities.stream().map(entity ->
         {
            var result = mathOperationOperation.Compute(entity);
-           resultRepositoryImpl.Create(entity, result);
+           resultRepository.Create(entity, result);
            return result;
 
         }).collect(Collectors.toCollection(ArrayList::new));
@@ -107,8 +105,8 @@ public class MathController {
     @PostMapping(value="/computeAsync", consumes = "application/json", produces = "application/json")
     public MathOperationIdModel computeAsync(@RequestBody MathOperationModel model)
     {
-        var operationEntity = operationRepositoryImpl.Get(model.getOperation().name());
-        var entity = mathOperationRepositoryImpl.Create(model.getFirst(), model.getSecond(), operationEntity);
+        var operationEntity = operationRepository.getByName(model.getOperation().name());
+        var entity = mathOperationRepository.Create(model.getFirst(), model.getSecond(), operationEntity);
 
         mathOperationOperation.ComputeAsync(entity);
 
@@ -118,9 +116,9 @@ public class MathController {
     @GetMapping("/result")
     public MathOperationResultModel result(@ModelAttribute MathOperationIdModel model)
     {
-        var mathOperation = mathOperationRepositoryImpl.Get(model.getId());
+        var mathOperation = mathOperationRepository.findById(model.getId()).get();
 
-        var result = resultRepositoryImpl.Get(mathOperation);
+        var result = resultRepository.getByMathOperation(mathOperation);
 
         return new MathOperationResultModel(result.getResult());
     }

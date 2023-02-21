@@ -13,8 +13,8 @@ public class OperationOperation implements IOperationOperation
     @Autowired
     public OperationRepository operationRepository;
 
-    public OperationEntity Addition() { return operationRepository.Get(Operation.Addition.name()); }
-    public OperationEntity Subtraction() { return operationRepository.Get(Operation.Subtraction.name()); };
-    public OperationEntity Multiplication() {return operationRepository.Get(Operation.Multiplication.name()); };
-    public OperationEntity Division() { return operationRepository.Get(Operation.Division.name()); }
+    public OperationEntity Addition() { return operationRepository.getByName(Operation.Addition.name()); }
+    public OperationEntity Subtraction() { return operationRepository.getByName(Operation.Subtraction.name()); };
+    public OperationEntity Multiplication() {return operationRepository.getByName(Operation.Multiplication.name()); };
+    public OperationEntity Division() { return operationRepository.getByName(Operation.Division.name()); }
 }

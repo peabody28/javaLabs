@@ -21,10 +21,4 @@ public class MathOperationRepositoryImpl implements MathOperationRepositoryCusto
         var object = mathOperationRepository.save(entity);
         return object;
     }
-
-    @Override
-    public MathOperationEntity Get(Integer id) {
-        var entity = mathOperationRepository.findById(id);
-        return entity.orElse(null);
-    }
 }
